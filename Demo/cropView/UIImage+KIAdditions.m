@@ -46,12 +46,18 @@
     }
     [self drawInRect:CGRectMake(0, 0, width, height)];
     UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+
     UIGraphicsEndImageContext();
     return image;
 }
 
 - (UIImage *)cropImageWithX:(CGFloat)x y:(CGFloat)y width:(CGFloat)width height:(CGFloat)height {
     CGRect rect = CGRectMake(x, y, width, height);
+    NSLog(@"%f",rect.origin.x);
+    NSLog(@"%f",rect.origin.y);
+    NSLog(@"%f",rect.size.width);
+    NSLog(@"%f",rect.size.height);
+    
     CGImageRef imageRef = CGImageCreateWithImageInRect(self.CGImage, rect);
     UIImage *image = [UIImage imageWithCGImage:imageRef];
     return image;

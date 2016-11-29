@@ -12,7 +12,13 @@
 
 - (void)setFrame:(CGRect)frame {
     [super setFrame:frame];
-    [[self scrollView] setFrame:self.bounds];
+    //self.bounds
+//    [[self scrollView] setFrame:self.bounds];
+    [[self scrollView] setFrame:CGRectMake(0, [UIScreen mainScreen].bounds.size.height / 2 - 100, [UIScreen mainScreen].bounds.size.width, 200)];
+    _scrollView.backgroundColor = [UIColor blueColor];
+    
+   // [[self imageView] setFrame:CGRectMake(50, 50, [UIScreen mainScreen].bounds.size.width, 200)];
+    
     [[self maskView] setFrame:self.bounds];
     
     if (CGSizeEqualToSize(_cropSize, CGSizeZero)) {
@@ -52,6 +58,8 @@
 }
 
 - (void)setImage:(UIImage *)image {
+    
+    
     if (image != _image) {
         [_image release];
         _image = nil;
@@ -65,11 +73,18 @@
 - (void)updateZoomScale {
     CGFloat width = _image.size.width;
     CGFloat height = _image.size.height;
+//    if (height > width){
+//        [[self imageView] setFrame:CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height)];
+//    }else{
+//        [[self imageView] setFrame:CGRectMake(0, [UIScreen mainScreen].bounds.size.height/2 - ([UIScreen mainScreen].bounds.size.height/2)/2, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height/2)];
+//    }
+    [[self imageView] setFrame:_scrollView.bounds];
     
-    [[self imageView] setFrame:CGRectMake(0, 0, width, height)];
+//    CGFloat xScale = _cropSize.width / width;
+//    CGFloat yScale = _cropSize.height / height;
     
-    CGFloat xScale = _cropSize.width / width;
-    CGFloat yScale = _cropSize.height / height;
+    CGFloat xScale = _scrollView.bounds.size.width / width;
+    CGFloat yScale = _scrollView.bounds.size.height / height;
     
     CGFloat min = MAX(xScale, yScale);
     CGFloat max = 1.0;
@@ -80,6 +95,7 @@
     if (min > max) {
         min = max;
     }
+    //设置缩放
     
     [[self scrollView] setMinimumZoomScale:min];
     [[self scrollView] setMaximumZoomScale:max + 5.0f];
@@ -104,24 +120,35 @@
     CGFloat right = CGRectGetWidth(self.bounds)- width - x;
     CGFloat bottom = CGRectGetHeight(self.bounds)- height - y;
     _imageInset = UIEdgeInsetsMake(top, left, bottom, right);
-    [[self scrollView] setContentInset:_imageInset];
     
+    NSLog(@"_imageInset.left:  %f",_imageInset.left);
+    NSLog(@"_imageInset.top:   %f",_imageInset.top);
+    
+    [[self scrollView] setContentInset:_imageInset];
     [[self scrollView] setContentOffset:CGPointMake(0, 0)];
 }
 
 - (UIImage *)cropImage {
+    
     CGFloat zoomScale = [self scrollView].zoomScale;
+    
+//    CGFloat xScale = _scrollView.bounds.size.width / _image.size.width;
+//    CGFloat yScale = _scrollView.bounds.size.height / _image.size.height;
     
     CGFloat offsetX = [self scrollView].contentOffset.x;
     CGFloat offsetY = [self scrollView].contentOffset.y;
+        
     CGFloat aX = offsetX>=0 ? offsetX+_imageInset.left : (_imageInset.left - ABS(offsetX));
     CGFloat aY = offsetY>=0 ? offsetY+_imageInset.top : (_imageInset.top - ABS(offsetY));
     
-    aX = aX / zoomScale;
-    aY = aY / zoomScale;
+    aX = (aX + 300) / zoomScale;
+    aY = (aY - 80) / zoomScale;
+
+    CGFloat aWidth =  MAX(_scrollView.bounds.size.width / zoomScale, _cropSize.width);
+    CGFloat aHeight = MAX(_scrollView.bounds.size.height / zoomScale, _cropSize.height);
     
-    CGFloat aWidth =  MAX(_cropSize.width / zoomScale, _cropSize.width);
-    CGFloat aHeight = MAX(_cropSize.height / zoomScale, _cropSize.height);
+//    CGFloat aWidth =  MAX(_cropSize.width / zoomScale, _cropSize.width);
+//    CGFloat aHeight = MAX(_cropSize.height / zoomScale, _cropSize.height);
     
 //#ifdef DEBUG
 //    NSLog(@"%f--%f--%f--%f", aX, aY, aWidth, aHeight);
@@ -130,12 +157,12 @@
     UIImage *image = [_image cropImageWithX:aX y:aY width:aWidth height:aHeight];
     
     image = [image resizeToWidth:_cropSize.width height:_cropSize.height];
-
     return image;
 }
 
 #pragma UIScrollViewDelegate
 - (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView {
+    
     return [self imageView];
 }
 
@@ -162,6 +189,9 @@
     CGFloat x = (CGRectGetWidth(self.bounds) - size.width) / 2;
     CGFloat y = (CGRectGetHeight(self.bounds) - size.height) / 2;
     _cropRect = CGRectMake(x, y, size.width, size.height);
+    
+    NSLog(@"cropsizeW:%f",x);
+    NSLog(@"cropsizeH:%f",y);
     
     [self setNeedsDisplay];
 }
